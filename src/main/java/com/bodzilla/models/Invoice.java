@@ -16,9 +16,6 @@ public class Invoice {
 
     private Integer amount;
 
-    public Invoice() {
-    }
-
     public Invoice(String userId, Integer amount, String pdfUrl) {
         this.id = UUID.randomUUID().toString();
         this.userId = userId;
