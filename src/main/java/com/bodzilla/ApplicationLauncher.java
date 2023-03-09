@@ -1,5 +1,6 @@
-package bodzilla;
+package com.bodzilla;
 
+import com.bodzilla.web.Servlet;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
 
