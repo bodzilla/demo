@@ -1,11 +1,13 @@
 package com.bodzilla.services;
 
 import com.bodzilla.models.Invoice;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Component // This annotation tells Spring that it should turn your UserService and your InvoiceService into @Beans.
 public class InvoiceService {
 
     private final UserService userService;
