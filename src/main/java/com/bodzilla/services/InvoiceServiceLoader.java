@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 // annotation, which means the bean will only exist whenever you start up Spring with the dev
 // environment.
 @Profile("dev")
-public class DummyInvoiceServiceLoader {
+public class InvoiceServiceLoader {
 
   private final InvoiceService invoiceService;
 
-  public DummyInvoiceServiceLoader(InvoiceService invoiceService) {
+  public InvoiceServiceLoader(InvoiceService invoiceService) {
     this.invoiceService = invoiceService;
   }
 

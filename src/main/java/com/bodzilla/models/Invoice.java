@@ -1,7 +1,6 @@
 package com.bodzilla.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.UUID;
 
 public class Invoice {
 
@@ -14,13 +13,6 @@ public class Invoice {
   private String pdfUrl;
 
   private Integer amount;
-
-  public Invoice(String userId, Integer amount, String pdfUrl) {
-    this.id = UUID.randomUUID().toString();
-    this.userId = userId;
-    this.pdfUrl = pdfUrl;
-    this.amount = amount;
-  }
 
   public String getId() {
     return id;

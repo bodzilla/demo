@@ -1,6 +1,6 @@
 package com.bodzilla;
 
-import com.bodzilla.context.DemoApplicationConfiguration;
+import com.bodzilla.context.ApplicationConfiguration;
 import javax.servlet.ServletContext;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
@@ -28,7 +28,7 @@ public class ApplicationLauncher {
 
   public static WebApplicationContext createApplicationContext(ServletContext servletContext) {
     var ctx = new AnnotationConfigWebApplicationContext();
-    ctx.register(DemoApplicationConfiguration.class);
+    ctx.register(ApplicationConfiguration.class);
     ctx.setServletContext(servletContext);
     ctx.refresh();
     ctx.registerShutdownHook();

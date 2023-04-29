@@ -5,7 +5,6 @@ import com.bodzilla.models.Invoice;
 import com.bodzilla.services.InvoiceService;
 import java.util.List;
 import javax.validation.Valid;
-
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +20,7 @@ public class InvoiceController {
 
   @GetMapping("/invoices")
   public List<Invoice> invoices() {
-    return invoiceService.getAll();
+    return invoiceService.findAll();
   }
 
   @PostMapping("/invoices")

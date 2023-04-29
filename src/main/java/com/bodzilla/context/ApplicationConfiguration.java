@@ -3,12 +3,18 @@ package com.bodzilla.context;
 import com.bodzilla.ApplicationLauncher;
 import com.bodzilla.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.sql.DataSource;
+import org.h2.jdbcx.JdbcDataSource;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -38,7 +44,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 // This tells Spring to enable Spring MVC.
 @EnableWebMvc
-public class DemoApplicationConfiguration {
+
+// This tells Spring to enable Spring's transaction management.
+@EnableTransactionManagement
+public class ApplicationConfiguration {
 
   // Your application needs a UserService.
   // So, in your configuration class, you create a method that returns a UserService, annotated with
@@ -77,5 +86,24 @@ public class DemoApplicationConfiguration {
   @Bean
   public ObjectMapper objectMapper() {
     return new ObjectMapper();
+  }
+
+  @Bean
+  public TransactionManager platformTransactionManager() {
+    return new DataSourceTransactionManager(dataSource());
+  }
+
+  @Bean
+  public JdbcTemplate jdbcTemplate() {
+    return new JdbcTemplate(dataSource());
+  }
+
+  @Bean
+  public DataSource dataSource() {
+    var dataSource = new JdbcDataSource();
+    dataSource.setURL("jdbc:h2:~/demo-database;INIT=RUNSCRIPT FROM 'classpath:schema.sql'");
+    dataSource.setUser("sa");
+    dataSource.setPassword("sa");
+    return dataSource;
   }
 }

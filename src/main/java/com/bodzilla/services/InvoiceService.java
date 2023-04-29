@@ -1,53 +1,94 @@
 package com.bodzilla.services;
 
 import com.bodzilla.models.Invoice;
+import java.sql.Statement;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Component // This annotation tells Spring that it should turn your UserService and your
 // InvoiceService into @Beans.
 public class InvoiceService {
+  private final JdbcTemplate jdbcTemplate;
+
   private final UserService userService;
-  private final List<Invoice> invoices = new CopyOnWriteArrayList<>();
+
   private final String cdnUrl;
 
-  // the @Value annotation tells Spring to inject the value of the property into the field, defined
-  // in the application.properties file.
-  public InvoiceService(UserService userService, @Value("${cdn.url}") String cdnUrl) {
+  public InvoiceService(
+      UserService userService, JdbcTemplate jdbcTemplate, @Value("${cdn.url}") String cdnUrl) {
     this.userService = userService;
     this.cdnUrl = cdnUrl;
+    this.jdbcTemplate = jdbcTemplate;
   }
 
-  // This annotation tells to call this method after it constructs InvoiceService and all injected
-  // dependencies.
   @PostConstruct
   public void init() {
     System.out.println("Fetching PDF Template from S3...");
   }
 
-  // This annotation tells Spring to call this method before the application is
-  // gracefully shut down.
   @PreDestroy
   public void shutdown() {
     System.out.println("Deleting downloaded templates...");
   }
 
-  public Invoice create(String userId, Integer amount) {
-    if (Objects.isNull(userService.findById(userId))) {
-      throw new IllegalStateException("User does not exist.");
-    }
+  @Transactional
+  public List<Invoice> findAll() {
+    System.out.println(
+        "Is a database transaction open? = "
+            + TransactionSynchronizationManager.isActualTransactionActive());
 
-    Invoice invoice = new Invoice(userId, amount, cdnUrl + "/images/default/sample.pdf");
-    invoices.add(invoice);
-    return invoice;
+    return jdbcTemplate.query(
+        "select id, user_id, pdf_url, amount from invoices",
+        (resultSet, rowNum) -> {
+          Invoice invoice = new Invoice();
+          invoice.setId(resultSet.getObject("id").toString());
+          invoice.setPdfUrl(resultSet.getString("pdf_url"));
+          invoice.setUserId(resultSet.getString("user_id"));
+          invoice.setAmount(resultSet.getInt("amount"));
+          return invoice;
+        });
   }
 
-  public List<Invoice> getAll() {
-    return invoices;
+  @Transactional
+  public Invoice create(String userId, Integer amount) {
+    System.out.println(
+        "Is a database transaction open? = "
+            + TransactionSynchronizationManager.isActualTransactionActive());
+
+    var generatedPdfUrl = cdnUrl + "/images/default/sample.pdf";
+
+    var keyHolder = new GeneratedKeyHolder();
+
+    jdbcTemplate.update(
+        connection -> {
+          var preparedStatement =
+              connection.prepareStatement(
+                  "insert into invoices (user_id, pdf_url, amount) values (?, ?, ?)",
+                  Statement.RETURN_GENERATED_KEYS);
+          preparedStatement.setString(1, userId); //
+          preparedStatement.setString(2, generatedPdfUrl);
+          preparedStatement.setInt(3, amount);
+          return preparedStatement;
+        },
+        keyHolder);
+
+    String uuid =
+        !keyHolder.getKeys().isEmpty()
+            ? keyHolder.getKeys().values().iterator().next().toString()
+            : null;
+
+    var invoice = new Invoice();
+    invoice.setId(uuid);
+    invoice.setPdfUrl(generatedPdfUrl);
+    invoice.setAmount(amount);
+    invoice.setUserId(userId);
+    return invoice;
   }
 }
