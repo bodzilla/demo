@@ -1,0 +1,1 @@
+- Skipped over module "04 Spring WebMVC: HTML Pages", not relevant to my learning.
