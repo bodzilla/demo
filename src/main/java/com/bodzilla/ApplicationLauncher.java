@@ -1,8 +1,12 @@
 package com.bodzilla;
 
-import com.bodzilla.web.Servlet;
+import com.bodzilla.context.DemoApplicationConfiguration;
+import javax.servlet.ServletContext;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
 
 public class ApplicationLauncher {
 
@@ -11,11 +15,23 @@ public class ApplicationLauncher {
     tomcat.setPort(8080);
     tomcat.getConnector();
 
-    var context = tomcat.addContext("", null);
-    var servlet = Tomcat.addServlet(context, "servlet", new Servlet());
+    var tomcatCtx = tomcat.addContext("", null);
+
+    var applicationContext = createApplicationContext(tomcatCtx.getServletContext());
+    var dispatcherServlet = new DispatcherServlet(applicationContext);
+    var servlet = Tomcat.addServlet(tomcatCtx, "dispatcherServlet", dispatcherServlet);
     servlet.setLoadOnStartup(1);
     servlet.addMapping("/*");
 
     tomcat.start();
+  }
+
+  public static WebApplicationContext createApplicationContext(ServletContext servletContext) {
+    var ctx = new AnnotationConfigWebApplicationContext();
+    ctx.register(DemoApplicationConfiguration.class);
+    ctx.setServletContext(servletContext);
+    ctx.refresh();
+    ctx.registerShutdownHook();
+    return ctx;
   }
 }

@@ -9,6 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
+import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 // Spring needs a configuration class in order to construct an ApplicationContext.
 // This is the configuration class.
@@ -33,6 +35,9 @@ import org.springframework.context.annotation.Scope;
 @PropertySource(
     value = "classpath:/application-${spring.profiles.active}.properties",
     ignoreResourceNotFound = true)
+
+// This tells Spring to enable Spring MVC.
+@EnableWebMvc
 public class DemoApplicationConfiguration {
 
   // Your application needs a UserService.
@@ -59,6 +64,12 @@ public class DemoApplicationConfiguration {
   // singleton bean.
   public UserService userService() {
     return new UserService();
+  }
+
+  // This tells Spring to enable method-level validation.
+  @Bean
+  public MethodValidationPostProcessor methodValidationPostProcessor() {
+    return new MethodValidationPostProcessor();
   }
 
   // Since objectMapper is an external dependency, we still need to explicitly declare this as a
